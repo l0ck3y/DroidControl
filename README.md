@@ -1,6 +1,7 @@
 # Droid Depot BLE Web Controller
 
-A single-file HTML Web Bluetooth controller for Disney Galaxy's Edge Droid Depot droids (BB-series). Reverse engineered from [Baptiste Laget's droid.bap.dev](https://droid.bap.dev) Angular source.
+A single-file HTML Web Bluetooth controller for Disney Galaxy's Edge Droid Depot droids (BB-series). Reverse engineered from [Baptiste Laget's droid.bap.dev](https://droid.bap.dev) and the corresponding article 
+https://medium.com/@baptistelaget/controlling-disneys-droids-from-droid-depots-with-webbluetooth-febbabe50587
 
 ## Requirements
 
