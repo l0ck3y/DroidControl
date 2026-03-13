@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DROID CONTROL UNIT</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg:        #050a0e;
+    --panel:     #0a1520;
+    --border:    #1a3a5c;
+    --accent:    #00d4ff;
+    --accent2:   #ff6b00;
+    --dim:       #2a6080;
+    --green:     #00ff88;
+    --red:       #ff3333;
+    --text:      #a8d8ea;
+    --textdim:   #3a6a80;
+    --glow:      0 0 12px #00d4ff88, 0 0 30px #00d4ff33;
+    --glow2:     0 0 12px #ff6b0088, 0 0 30px #ff6b0033;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, #00d4ff0a 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #ff6b000a 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, #ffffff04 39px, #ffffff04 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, #ffffff04 39px, #ffffff04 40px);
+  }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .brand {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(20px, 5vw, 36px);
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-shadow: var(--glow);
+    position: relative;
+  }
+  .brand::before, .brand::after {
+    content: '';
+    display: inline-block;
+    width: 40px;
+    height: 2px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin: 0 12px;
+    box-shadow: var(--glow);
+  }
+  .subtitle {
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--dim);
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 860px;
+  }
+  @media (max-width: 640px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .full { grid-column: 1 / -1; }
+
+  /* ── Panel ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Status indicator ── */
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--textdim);
+    transition: all 0.4s;
+    flex-shrink: 0;
+  }
+  .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .status-dot.connecting { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); animation: blink 0.8s infinite; }
+  .status-dot.error { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  #status-text { font-size: 13px; color: var(--text); }
+
+  /* ── Buttons ── */
+  .btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #00d4ff0d;
+    box-shadow: var(--glow);
+  }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn.primary {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #00d4ff0d;
+  }
+  .btn.primary:hover:not(:disabled) {
+    background: #00d4ff22;
+    box-shadow: var(--glow);
+  }
+  .btn.danger {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .btn.danger:hover:not(:disabled) {
+    background: #ff333310;
+    box-shadow: 0 0 12px #ff333344;
+  }
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* ── Sound grid ── */
+  .sound-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+  }
+  .sound-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 10px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--textdim);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .sound-btn:hover:not(:disabled) {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: #ff6b0010;
+    box-shadow: var(--glow2);
+  }
+  .sound-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+  .sound-btn.playing {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: #ff6b0018;
+  }
+
+  /* ── Head controls ── */
+  .head-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .droid-head {
+    width: 52px; height: 52px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    background: #0a1a28;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: var(--glow);
+  }
+  .droid-eye {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: var(--glow);
+    position: absolute;
+    top: 14px; left: 14px;
+    transition: all 0.3s;
+  }
+  .sweep-arc {
+    position: absolute;
+    width: 120px; height: 60px;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 120px 120px;
+    bottom: 4px;
+  }
+  .tick {
+    position: absolute;
+    width: 1px; height: 10px;
+    background: var(--border);
+    bottom: 4px;
+    transform-origin: bottom center;
+  }
+  .tick.center { background: var(--dim); }
+  .head-btn-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    align-items: center;
+  }
+  .head-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .head-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #00d4ff0d;
+    box-shadow: var(--glow);
+  }
+  .head-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .head-center-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--textdim);
+    text-align: center;
+  }
+
+  /* ── Automation ── */
+  .range-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .range-row label {
+    font-size: 12px;
+    color: var(--textdim);
+    white-space: nowrap;
+    min-width: 80px;
+  }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: var(--glow);
+  }
+  .range-val {
+    font-size: 13px;
+    color: var(--accent);
+    min-width: 40px;
+    text-align: right;
+  }
+  .auto-status {
+    font-size: 12px;
+    color: var(--textdim);
+    margin-top: 4px;
+    min-height: 18px;
+  }
+  .auto-status.active { color: var(--green); }
+
+  /* ── Log ── */
+  #log {
+    height: 160px;
+    overflow-y: auto;
+    font-size: 11px;
+    line-height: 1.8;
+    color: var(--textdim);
+    padding-right: 4px;
+  }
+  #log::-webkit-scrollbar { width: 4px; }
+  #log::-webkit-scrollbar-track { background: transparent; }
+  #log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .log-entry { display: block; }
+  .log-entry.info  { color: var(--text); }
+  .log-entry.ok    { color: var(--green); }
+  .log-entry.warn  { color: var(--accent2); }
+  .log-entry.error { color: var(--red); }
+  .log-ts { color: var(--textdim); margin-right: 8px; }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--textdim);
+    letter-spacing: 0.2em;
+  }
+
+  /* ── Scan line animation ── */
+  @keyframes scanline {
+    from { transform: translateY(-100%); }
+    to   { transform: translateY(100vh); }
+  }
+  .scanline {
+    pointer-events: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(transparent, #00d4ff18, transparent);
+    animation: scanline 6s linear infinite;
+    z-index: 999;
+  }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<header>
+  <div class="brand">DROID CONTROL UNIT</div>
+  <div class="subtitle">Galaxy's Edge // BLE Interface // v2.0</div>
+</header>
+
+<div class="layout">
+
+  <!-- CONNECTION -->
+  <div class="panel full">
+    <div class="panel-title">01 // CONNECTION</div>
+    <div class="status-row">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">OFFLINE — Awaiting connection</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="btn-connect" onclick="connectDroid()">⬡ CONNECT DROID</button>
+      <button class="btn danger" id="btn-disconnect" onclick="disconnectDroid()" disabled>✕ DISCONNECT</button>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--textdim);">
+      Requires Web Bluetooth (Chrome/Edge). Ensure droid is powered on and remote is disconnected.
+    </div>
+  </div>
+
+  <!-- DROID TYPE -->
+  <div class="panel full">
+    <div class="panel-title">01b // DROID TYPE</div>
+    <div style="font-size:11px;color:var(--textdim);margin-bottom:12px;">
+      Select your droid series. BB-series has no head motor — head controls will be disabled.
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="btn-type-r"  onclick="setDroidType('r')">R-SERIES (R2/R5)</button>
+      <button class="btn"         id="btn-type-bb" onclick="setDroidType('bb')">BB-SERIES (BB-8)</button>
+    </div>
+  </div>
+
+  <!-- SOUNDS -->
+  <div class="panel">
+    <div class="panel-title">02 // SOUNDS</div>
+    <div style="font-size:11px;color:var(--textdim);margin-bottom:14px;">
+      Select a bank then trigger a sound slot. Two-write pattern fires playback.
+    </div>
+
+    <!-- Bank selector -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;letter-spacing:.2em;color:var(--textdim);margin-bottom:8px;">PERSONALITY BANK</div>
+      <div id="bank-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Sound slot buttons -->
+    <div style="margin-bottom:6px;">
+      <div style="font-size:10px;letter-spacing:.2em;color:var(--textdim);margin-bottom:8px;">SOUND SLOT — BANK <span id="active-bank-label">00</span></div>
+      <div class="sound-grid" id="sound-grid">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- HEAD CONTROL -->
+  <div class="panel">
+    <div class="panel-title" data-motion-title>03 // BODY PIVOT</div>
+    <div class="head-visual">
+      <div class="sweep-arc">
+        <!-- tick marks -->
+        <div class="tick" style="transform:rotate(-70deg) translateY(10px);left:59px;bottom:0;transform-origin:bottom;"></div>
+        <div class="tick" style="transform:rotate(-35deg);left:59px;bottom:0;transform-origin:bottom;"></div>
+        <div class="tick center" style="left:59px;bottom:0;transform-origin:bottom;"></div>
+        <div class="tick" style="transform:rotate(35deg);left:59px;bottom:0;transform-origin:bottom;"></div>
+        <div class="tick" style="transform:rotate(70deg);left:59px;bottom:0;transform-origin:bottom;"></div>
+      </div>
+      <div class="droid-head" id="droid-head">
+        <div class="droid-eye" id="droid-eye"></div>
+      </div>
+    </div>
+    <div class="head-btn-row" style="margin-bottom:16px;">
+      <button class="head-btn" id="btn-left"   onclick="headLeft()"   disabled title="Turn left">◁</button>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
+        <button class="head-btn" id="btn-fwd"  onclick="driveFwd()"   disabled title="Drive forward" style="font-size:11px;">▲<br>FWD</button>
+        <div class="head-center-label">MOTION</div>
+        <button class="head-btn" id="btn-back" onclick="driveBack()"  disabled title="Drive back" style="font-size:11px;">▽<br>BACK</button>
+      </div>
+      <button class="head-btn" id="btn-right"  onclick="headRight()"  disabled title="Turn right">▷</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="btn-center" onclick="headCenter()" disabled>◈ CENTER</button>
+      <button class="btn" id="btn-sweep"  onclick="headSweep()"  disabled>↔ SWEEP</button>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="range-row">
+        <label>SPEED</label>
+        <input type="range" id="head-power" min="32" max="255" value="160" oninput="updateHeadParamLabels()">
+        <span class="range-val" id="head-power-val">63%</span>
+      </div>
+      <div class="range-row">
+        <label>DRIVE TIME</label>
+        <input type="range" id="head-time" min="100" max="1200" value="500" step="50" oninput="updateHeadParamLabels()">
+        <span class="range-val" id="head-time-val">500ms</span>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--textdim);" id="head-status">Motor off</div>
+  </div>
+
+  <!-- AUTOMATION -->
+  <div class="panel full">
+    <div class="panel-title">04 // AUTONOMOUS MODE</div>
+    <div style="font-size:11px;color:var(--textdim);margin-bottom:14px;">
+      Periodically trigger random sounds and movements automatically.
+    </div>
+    <div style="font-size:10px;letter-spacing:.2em;color:var(--textdim);margin-bottom:8px;">MODE</div>
+    <div class="btn-row" style="margin-bottom:14px;">
+      <button class="btn active" id="btn-mode-full"   onclick="setAutoMode('full')"  >⬡ FULL — sound + all movement</button>
+      <button class="btn"        id="btn-mode-static" onclick="setAutoMode('static')">⬡ STATIC — sound + pivot only</button>
+    </div>
+    <div class="range-row">
+      <label>INTERVAL</label>
+      <input type="range" id="interval-slider" min="3" max="60" value="10" oninput="updateIntervalLabel()">
+      <span class="range-val" id="interval-val">10s</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="btn-auto-start" onclick="startAuto()" disabled>▶ START AUTO</button>
+      <button class="btn danger"  id="btn-auto-stop"  onclick="stopAuto()"  disabled>■ STOP AUTO</button>
+    </div>
+    <div class="auto-status" id="auto-status"></div>
+  </div>
+
+  <!-- RAW / DIAGNOSTIC -->
+  <div class="panel full">
+    <div class="panel-title">05 // RAW COMMANDS</div>
+    <div style="font-size:11px;color:var(--textdim);margin-bottom:14px;">
+      Diagnostic presets + manual hex. One command per line. Append ,delay(ms) for gap after.
+    </div>
+
+    <!-- Motor format presets -->
+    <div style="font-size:10px;letter-spacing:.2em;color:var(--textdim);margin-bottom:8px;">MOTOR FORMAT — 2942 (bap.dev app)</div>
+    <div class="btn-row" style="flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+      <button class="btn" id="btn-raw-fwd"   onclick="rawPreset('fwd')"   disabled style="font-size:10px;">▲ FWD</button>
+      <button class="btn" id="btn-raw-back"  onclick="rawPreset('back')"  disabled style="font-size:10px;">▽ BACK</button>
+      <button class="btn" id="btn-raw-left"  onclick="rawPreset('left')"  disabled style="font-size:10px;">◁ LEFT</button>
+      <button class="btn" id="btn-raw-right" onclick="rawPreset('right')" disabled style="font-size:10px;">▷ RIGHT</button>
+      <button class="btn" id="btn-raw-stop"  onclick="rawPreset('stop')"  disabled style="font-size:10px;">■ STOP</button>
+    </div>
+
+    <!-- Note: No lighting commands exist in the droid BLE protocol -->
+
+    <!-- Manual hex -->
+    <div style="font-size:10px;letter-spacing:.2em;color:var(--textdim);margin-bottom:8px;">MANUAL HEX</div>
+    <textarea id="raw-input" rows="4" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;padding:8px;border-radius:4px;resize:vertical;" placeholder="27420f4444001800&#10;27420f4444001800,50&#10;2941050000000000"></textarea>
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="btn primary" id="btn-raw-send" onclick="sendRaw()" disabled>▶ SEND</button>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="panel full">
+    <div class="panel-title">06 // MISSION LOG</div>
+    <div id="log"></div>
+  </div>
+
+</div>
+
+<footer>UNOFFICIAL TOOL // USE AT OWN RISK // NOT AFFILIATED WITH DISNEY</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// BLE UUIDs
+// ─────────────────────────────────────────────
+const SERVICE_UUID = '09b600a0-3e42-41fc-b474-e9c0c8f0c801';
+const NOTIFY_UUID  = '09b600b0-3e42-41fc-b474-e9c0c8f0c801';
+const WRITE_UUID   = '09b600b1-3e42-41fc-b474-e9c0c8f0c801';
+
+// ─────────────────────────────────────────────
+// Sound commands
+// ─────────────────────────────────────────────
+// Sound system — bap.dev model (Zo class, sendBank / playSound)
+//
+// TWO-STEP PLAYBACK PATTERN:
+//   1. sendBank(bank) → 27 42 0F 44 44 00 1F <bank>   — selects personality bank
+//   2. playSound(sound) → 27 42 0F 44 44 00 18 <sound> — triggers slot
+//   Both use the two-write trigger: send the command twice ~50 ms apart.
+//
+// Banks: 00–07 and 0a (9 total, from bap.dev source array)
+// Sounds: 00–04 (5 per bank)
+// ─────────────────────────────────────────────
+const BANKS  = ['00','01','02','03','04','05','06','07','0a'];
+const SOUNDS  = ['00','01','02','03','04'];
+
+// Human-readable bank labels (best guesses from community RE)
+const BANK_LABELS = {
+  '00': 'BOOT',
+  '01': 'HAPPY',
+  '02': 'SAD',
+  '03': 'ALERT',
+  '04': 'CHATTY',
+  '05': 'SCARED',
+  '06': 'EXCITED',
+  '07': 'ANGRY',
+  '0a': 'SPECIAL',
+};
+
+// ─────────────────────────────────────────────
+// Motor commands
+// Format: 27 41 AX YY
+//   A = direction nibble: 0 = forward, 8 = backward
+//   X = motor number:     0, 1 (BB-8 has 0+1 only), 2 = R-series head
+//   YY = power:           0x00 (0%) to 0xFF (100%)
+// ─────────────────────────────────────────────
+function motorCmd(motor, forward, power) {
+  const dirNibble = forward ? 0x00 : 0x80;
+  const byte2 = dirNibble | (motor & 0x0F);
+  return `2741${byte2.toString(16).padStart(2,'0')}${power.toString(16).padStart(2,'0')}`;
+}
+function motorStop(motor) { return motorCmd(motor, true, 0x00); }
+
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+let writeChar  = null;
+let device     = null;
+let autoTimer  = null;
+let headAngle  = 0;
+let isRSeries  = true;
+let busy       = false;
+let activeBank = '00'; // currently selected personality bank
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+const fromHex = hex =>
+  new Uint8Array(hex.replace(/\s+/g, '').match(/.{1,2}/g).map(b => parseInt(b, 16)));
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function log(msg, type = 'info') {
+  const el = document.getElementById('log');
+  const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+  const span = document.createElement('span');
+  span.className = `log-entry ${type}`;
+  span.innerHTML = `<span class="log-ts">[${ts}]</span>${msg}`;
+  el.appendChild(span);
+  el.appendChild(document.createElement('br'));
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(state, text) {
+  document.getElementById('status-dot').className = `status-dot ${state}`;
+  document.getElementById('status-text').textContent = text;
+}
+
+function setControlsEnabled(en) {
+  ['btn-disconnect','btn-left','btn-right','btn-fwd','btn-back','btn-center','btn-sweep',
+   'btn-auto-start',
+   'btn-raw-fwd','btn-raw-back','btn-raw-left','btn-raw-right','btn-raw-stop','btn-raw-send'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !en;
+  });
+  document.getElementById('btn-connect').disabled = en;
+  document.querySelectorAll('.sound-btn').forEach(b => b.disabled = !en);
+  updateHeadButtonsForType();
+}
+
+function updateHeadButtonsForType() {
+  // For BB-8: pivot buttons enabled (use body motors)
+  // For R-series: head motor buttons enabled
+  const motionEn = writeChar !== null;
+  ['btn-left','btn-right','btn-fwd','btn-back','btn-center','btn-sweep'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !motionEn;
+  });
+  const label = isRSeries ? 'HEAD ACTUATOR' : 'BODY PIVOT';
+  const titleEl = document.querySelector('[data-motion-title]');
+  if (titleEl) titleEl.textContent = `03 // ${label}`;
+  document.getElementById('head-status').textContent =
+    isRSeries
+      ? (headAngle === 0 ? 'Center' : headAngle < 0 ? `Left ${Math.abs(headAngle)}°` : `Right ${headAngle}°`)
+      : 'Ready';
+}
+
+// Serialised write queue — all BLE writes go through here in order
+let writeQueue = Promise.resolve();
+function write(hex) {
+  writeQueue = writeQueue.then(async () => {
+    if (!writeChar) return;
+    try {
+      await writeChar.writeValueWithoutResponse(fromHex(hex));
+    } catch(_) {
+      try { await writeChar.writeValue(fromHex(hex)); } catch(_) {}
+    }
+    await sleep(30);
+  });
+  return writeQueue;
+}
+
+// Mutex for compound motor sequences
+async function withLock(label, fn) {
+  if (busy) { log(`Busy — skip ${label}`, 'warn'); return; }
+  busy = true;
+  try { await fn(); }
+  catch(e) { log(`Error in ${label}: ${e.message}`, 'error'); }
+  finally { busy = false; }
+}
+
+// ─────────────────────────────────────────────
+// Droid type toggle
+// ─────────────────────────────────────────────
+function setDroidType(type) {
+  isRSeries = (type === 'r');
+  document.getElementById('btn-type-r').style.borderColor  = isRSeries ? 'var(--accent)' : '';
+  document.getElementById('btn-type-r').style.color        = isRSeries ? 'var(--accent)' : '';
+  document.getElementById('btn-type-bb').style.borderColor = !isRSeries ? 'var(--accent)' : '';
+  document.getElementById('btn-type-bb').style.color       = !isRSeries ? 'var(--accent)' : '';
+  log(`Droid type: ${isRSeries ? 'R-series (head motor)' : 'BB-series (body pivot)'}`, 'info');
+  updateHeadButtonsForType();
+}
+
+// ─────────────────────────────────────────────
+// Sound system — bap.dev two-step model (Zo class)
+//
+// sendBank(bank):     27 42 0F 44 44 00 1F <bank>   × 2 (~50ms apart)
+// triggerSound(slot): 27 42 0F 44 44 00 18 <slot>   × 2 (~50ms apart)
+//
+// Sequence: selectBank → playBankSound
+// ─────────────────────────────────────────────
+function bankCmd(bank)  { return `27420f4444001f${bank}`; }
+function soundCmdFull(slot) { return `27420f44440018${slot}`; }
+
+(function buildSoundUI() {
+  // ── Bank selector ──
+  const bankGrid = document.getElementById('bank-grid');
+  BANKS.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'sound-btn' + (b === activeBank ? ' playing' : '');
+    btn.id = `bank-${b}`;
+    btn.disabled = true;
+    btn.style.cssText = 'white-space:pre;line-height:1.3;font-size:10px;padding:6px 4px;';
+    btn.textContent = `${BANK_LABELS[b]||b}\n${b}`;
+    btn.onclick = () => selectBank(b);
+    bankGrid.appendChild(btn);
+  });
+
+  // ── Sound slot grid ──
+  const grid = document.getElementById('sound-grid');
+  SOUNDS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'sound-btn';
+    btn.id = `sound-${s}`;
+    btn.disabled = true;
+    btn.textContent = `SLOT ${s}`;
+    btn.onclick = () => playBankSound(s);
+    grid.appendChild(btn);
+  });
+})();
+
+async function selectBank(bank) {
+  activeBank = bank;
+  document.getElementById('active-bank-label').textContent = bank;
+  BANKS.forEach(b => {
+    const el = document.getElementById(`bank-${b}`);
+    if (el) el.classList.toggle('playing', b === bank);
+  });
+  log(`BANK ${bank} — ${BANK_LABELS[bank]||'?'} selected`, 'info');
+  if (!writeChar) return;
+  const cmd = bankCmd(bank);
+  await write(cmd); await sleep(50); await write(cmd);
+}
+
+async function playBankSound(slot) {
+  if (!writeChar) return;
+  const btn = document.getElementById(`sound-${slot}`);
+  btn.classList.add('playing');
+  log(`▶ BANK ${activeBank} [${BANK_LABELS[activeBank]||'?'}] SLOT ${slot}`, 'info');
+  // sendBank ×2
+  const bCmd = bankCmd(activeBank);
+  await write(bCmd); await sleep(50); await write(bCmd); await sleep(50);
+  // triggerSound ×2
+  const sCmd = soundCmdFull(slot);
+  await write(sCmd); await sleep(50); await write(sCmd);
+  setTimeout(() => btn.classList.remove('playing'), 900);
+}
+
+// ─────────────────────────────────────────────
+// Motion — BB-8 body pivot OR R-series head
+// ─────────────────────────────────────────────
+function getMotionParams() {
+  const power = parseInt(document.getElementById('head-power').value);
+  const ms    = parseInt(document.getElementById('head-time').value);
+  document.getElementById('head-power-val').textContent = `${Math.round(power/2.55)}%`;
+  document.getElementById('head-time-val').textContent  = `${ms}ms`;
+  return { power, ms };
+}
+
+function updateHeadParamLabels() { getMotionParams(); }
+
+function updateHeadVisual(angle) {
+  headAngle = Math.max(-70, Math.min(70, angle));
+  document.getElementById('droid-head').style.transform = `rotate(${headAngle}deg)`;
+  if (isRSeries) {
+    document.getElementById('head-status').textContent =
+      headAngle === 0 ? 'Center' : headAngle < 0 ? `Left ${Math.abs(headAngle)}°` : `Right ${headAngle}°`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Motion helpers — all use confirmed 2942 mvCmd format
+// ─────────────────────────────────────────────
+function motionPowerHex() {
+  return parseInt(document.getElementById('head-power').value).toString(16).padStart(2,'0');
+}
+function motionMs() { return parseInt(document.getElementById('head-time').value); }
+
+async function mvStop3() {
+  await write(mvStop(0)); await sleep(10);
+  await write(mvStop(1)); await sleep(10);
+  await write(mvStop(2));
+}
+
+async function doLeft() {
+  const pw = motionPowerHex(), ms = motionMs();
+  await write(mvCmd(1, 0, pw)); await sleep(10);
+  await write(mvCmd(0, 8, pw)); await sleep(ms);
+  await mvStop3();
+  updateHeadVisual(headAngle - 40);
+}
+
+async function doRight() {
+  const pw = motionPowerHex(), ms = motionMs();
+  await write(mvCmd(1, 8, pw)); await sleep(10);
+  await write(mvCmd(0, 0, pw)); await sleep(ms);
+  await mvStop3();
+  updateHeadVisual(headAngle + 40);
+}
+
+async function doCenter() {
+  await mvStop3();
+  updateHeadVisual(0);
+}
+
+async function doSweep() {
+  const pw = motionPowerHex(), ms = motionMs();
+  log('Sweep…', 'info');
+  await write(mvCmd(1, 0, pw)); await sleep(10);
+  await write(mvCmd(0, 8, pw)); await sleep(ms);
+  await mvStop3(); await sleep(200);
+  await write(mvCmd(1, 8, pw)); await sleep(10);
+  await write(mvCmd(0, 0, pw)); await sleep(ms * 2);
+  await mvStop3(); await sleep(200);
+  await write(mvCmd(1, 0, pw)); await sleep(10);
+  await write(mvCmd(0, 8, pw)); await sleep(ms);
+  await mvStop3();
+  updateHeadVisual(0);
+  log('Sweep ✓', 'ok');
+}
+
+async function headLeft()   { await withLock('left',   doLeft); }
+async function headRight()  { await withLock('right',  doRight); }
+async function headCenter() { await withLock('center', doCenter); }
+async function headSweep()  { await withLock('sweep',  doSweep); }
+
+async function doDriveFwd() {
+  const pw = motionPowerHex(), ms = motionMs();
+  await write(mvCmd(1, 0, pw)); await sleep(10);
+  await write(mvCmd(0, 0, pw)); await sleep(ms);
+  await mvStop3();
+}
+async function doDriveBack() {
+  const pw = motionPowerHex(), ms = motionMs();
+  await write(mvCmd(1, 8, pw)); await sleep(10);
+  await write(mvCmd(0, 8, pw)); await sleep(ms);
+  await mvStop3();
+}
+async function driveFwd()  { await withLock('fwd',  doDriveFwd); }
+async function driveBack() { await withLock('back', doDriveBack); }
+
+// ─────────────────────────────────────────────
+// RAW movement — confirmed bap.dev format from Angular source
+// sendMovement(motorNum, dirNibble, powerHex):
+//   packet: 2942 0546 {dir}{motor}{power} 012C 0000
+//   dir:    0 = forward, 8 = backward  (single hex NIBBLE, not byte)
+//   motor:  0 or 1 (BB units), 2 = R-series head
+//   power:  "00"–"FF" as 2-char hex string
+//
+// Confirmed movements (bap.dev Zo class):
+//   rotateLeft:  motor1 dir=0 + motor0 dir=8
+//   rotateRight: motor1 dir=8 + motor0 dir=0
+//   ahead:       motor1 dir=0 + motor0 dir=0
+//   back:        motor1 dir=8 + motor0 dir=8
+//   stop:        motor0 dir=0 pw=00 + motor1 dir=0 pw=00 + motor2 dir=0 pw=00
+// ─────────────────────────────────────────────
+function mvCmd(motor, dir, powerHex) {
+  // Exact bap.dev format: `2942 0546 ${dir}${motor}${power} 012C 0000`
+  // dir: single char '0'=forward, '8'=backward
+  // motor: single char '0', '1', '2'
+  // power: 2-char hex string e.g. '80', 'ff', '00'
+  const pw = String(powerHex).padStart(2,'0');
+  return '29420546' + String(dir) + String(motor) + pw + '012c0000';
+}
+function mvStop(motor) { return mvCmd(motor, 0, '00'); }
+
+// Power for raw presets — use the main speed slider, scaled to 2-char hex
+function rawPowerHex() {
+  const p = parseInt(document.getElementById('head-power').value);
+  return p.toString(16).padStart(2,'0');
+}
+function rawMs() { return parseInt(document.getElementById('head-time').value); }
+
+async function rawPreset(dir) {
+  if (!writeChar) return;
+  const pw = rawPowerHex(), ms = rawMs();
+  await withLock('raw-' + dir, async () => {
+    switch (dir) {
+      case 'fwd':   // ahead: motor1 dir=0, motor0 dir=0
+        await write(mvCmd(1, 0, pw)); await sleep(10);
+        await write(mvCmd(0, 0, pw)); await sleep(ms);
+        await write(mvStop(0)); await sleep(10); await write(mvStop(1)); await sleep(10); await write(mvStop(2)); break;
+      case 'back':  // back: motor1 dir=8, motor0 dir=8
+        await write(mvCmd(1, 8, pw)); await sleep(10);
+        await write(mvCmd(0, 8, pw)); await sleep(ms);
+        await write(mvStop(0)); await sleep(10); await write(mvStop(1)); await sleep(10); await write(mvStop(2)); break;
+      case 'left':  // rotateLeft: motor1 dir=0, motor0 dir=8
+        await write(mvCmd(1, 0, pw)); await sleep(10);
+        await write(mvCmd(0, 8, pw)); await sleep(ms);
+        await write(mvStop(0)); await sleep(10); await write(mvStop(1)); await sleep(10); await write(mvStop(2)); break;
+      case 'right': // rotateRight: motor1 dir=8, motor0 dir=0
+        await write(mvCmd(1, 8, pw)); await sleep(10);
+        await write(mvCmd(0, 0, pw)); await sleep(ms);
+        await write(mvStop(0)); await sleep(10); await write(mvStop(1)); await sleep(10); await write(mvStop(2)); break;
+      case 'stop':
+        await write(mvStop(0)); await sleep(10); await write(mvStop(1)); await sleep(10); await write(mvStop(2)); break;
+    }
+    // Log the actual bytes sent for debugging
+    const p1 = dir==='stop' ? mvStop(1) : (dir==='fwd'||dir==='left') ? mvCmd(1,0,pw) : mvCmd(1,8,pw);
+    log(`RAW 2942 [${dir}] motor1=${p1}`, 'info');
+  });
+}
+
+// ─────────────────────────────────────────────
+// Manual raw hex sender
+// ─────────────────────────────────────────────
+async function sendRaw() {
+  if (!writeChar) return;
+  const lines = document.getElementById('raw-input').value
+    .split('\n').map(l => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    const [hex, delayStr] = line.split(',');
+    const cmd = hex.replace(/\s+/g,'');
+    if (!cmd) continue;
+    await write(cmd);
+    log(`TX → ${cmd}`, 'info');
+    if (delayStr) await sleep(parseInt(delayStr) || 50);
+  }
+}
+
+// ─────────────────────────────────────────────
+// Connection
+// ─────────────────────────────────────────────
+async function connectDroid() {
+  if (!navigator.bluetooth) {
+    log('Web Bluetooth not available. Use Chrome or Edge (desktop).', 'error');
+    return;
+  }
+  setStatus('connecting', 'SCANNING for DROID…');
+  log('Requesting BLE device…', 'info');
+  try {
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ name: 'DROID' }],
+      optionalServices: [SERVICE_UUID],
+    });
+    log(`Device found: ${device.name}`, 'ok');
+    setStatus('connecting', 'CONNECTING…');
+    const server  = await device.gatt.connect();
+    log('GATT connected', 'ok');
+    const service = await server.getPrimaryService(SERVICE_UUID);
+    const chars   = await service.getCharacteristics();
+
+    for (const c of chars) {
+      if (c.uuid === NOTIFY_UUID) {
+        await c.startNotifications();
+        c.addEventListener('characteristicvaluechanged', e => {
+          const bytes = [...new Uint8Array(e.target.value.buffer)];
+          log(`RX ← ${bytes.map(b => b.toString(16).padStart(2,'0')).join(' ')}`, 'info');
+        });
+      } else if (c.uuid === WRITE_UUID) {
+        writeChar = c;
+      }
+    }
+    if (!writeChar) throw new Error('Write characteristic not found');
+    log('Running init sequence…', 'info');
+    await initialise();
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    setStatus('connected', `ONLINE — ${device.name}`);
+    setControlsEnabled(true);
+    log('Droid captured. May the Force be with you.', 'ok');
+  } catch(e) {
+    setStatus('error', `ERROR — ${e.message}`);
+    log(`Connection failed: ${e.message}`, 'error');
+    writeChar = null;
+  }
+}
+
+async function initialise() {
+  for (let i = 0; i < 4; i++) {
+    await write('222001');
+    await sleep(500);
+  }
+  // These two pairs both queue+trigger a sound, waking the droid
+  await write('27420f4444001f00'); // queue group 0x1F track 0
+  await sleep(10);
+  await write('27420f4444001802'); // trigger 0x1F-00, queue 0x18-02
+  await sleep(500);
+  await write('27420f4444001f00');
+  await sleep(10);
+  await write('27420f4444001802'); // triggers 0x1F-00 again
+  await sleep(1000);
+  log('Init complete.', 'ok');
+}
+
+function onDisconnected() {
+  setStatus('error', 'DISCONNECTED');
+  setControlsEnabled(false);
+  writeChar = null; busy = false;
+  stopAuto();
+  log('Connection lost.', 'warn');
+}
+
+function disconnectDroid() {
+  stopAuto();
+  if (device && device.gatt.connected) device.gatt.disconnect();
+  setStatus('', 'OFFLINE — Awaiting connection');
+  setControlsEnabled(false);
+  writeChar = null; busy = false;
+  log('Disconnected.', 'warn');
+}
+
+// ─────────────────────────────────────────────
+// Autonomous mode
+// ─────────────────────────────────────────────
+let autoMode = 'full'; // 'full' | 'static'
+
+function setAutoMode(mode) {
+  autoMode = mode;
+  document.getElementById('btn-mode-full').classList.toggle('active',   mode === 'full');
+  document.getElementById('btn-mode-static').classList.toggle('active', mode === 'static');
+  log(`Auto mode: ${mode === 'full' ? 'FULL (sound + all movement)' : 'STATIC (sound + pivot only)'}`, 'info');
+}
+
+function updateIntervalLabel() {
+  document.getElementById('interval-val').textContent =
+    `${document.getElementById('interval-slider').value}s`;
+}
+
+function updateHeadParamLabels() { /* sliders update live via oninput */ }
+
+async function randomAction() {
+  const doSound = Math.random() < 0.5;
+
+  if (doSound) {
+    const bank = BANKS[Math.floor(Math.random() * BANKS.length)];
+    const slot = SOUNDS[Math.floor(Math.random() * SOUNDS.length)];
+    await selectBank(bank);
+    await sleep(100);
+    await playBankSound(slot);
+    return;
+  }
+
+  if (autoMode === 'static') {
+    // Pivot only — random left or right
+    const pivotFns = [headLeft, headRight];
+    await pivotFns[Math.floor(Math.random() * pivotFns.length)]();
+  } else {
+    // Full — pivot, sweep, forward or back
+    const motionFns = [headLeft, headRight, headSweep, driveFwd, driveBack];
+    await motionFns[Math.floor(Math.random() * motionFns.length)]();
+  }
+}
+
+let nextFireAt = null, autoCountdown = null, autoRunning = false;
+
+async function startAuto() {
+  if (!writeChar || autoRunning) return;
+  autoRunning = true;
+  document.getElementById('btn-auto-start').disabled = true;
+  document.getElementById('btn-auto-stop').disabled  = false;
+  const secs = parseInt(document.getElementById('interval-slider').value);
+  log(`Autonomous mode ON (every ${secs}s)`, 'ok');
+
+  const loop = async () => {
+    if (!autoRunning) return;
+    await randomAction();
+    if (!autoRunning) return;
+    const next = parseInt(document.getElementById('interval-slider').value);
+    nextFireAt = Date.now() + next * 1000;
+    startCountdown();
+    autoTimer = setTimeout(loop, next * 1000);
+  };
+  nextFireAt = Date.now() + secs * 1000;
+  startCountdown();
+  autoTimer = setTimeout(loop, secs * 1000);
+}
+
+function startCountdown() {
+  clearInterval(autoCountdown);
+  const el = document.getElementById('auto-status');
+  el.className = 'auto-status active';
+  autoCountdown = setInterval(() => {
+    if (!autoRunning) { clearInterval(autoCountdown); return; }
+    const left = Math.max(0, Math.ceil((nextFireAt - Date.now()) / 1000));
+    el.textContent = `AUTONOMOUS — Next action in ${left}s`;
+  }, 300);
+}
+
+function stopAuto() {
+  autoRunning = false;
+  clearTimeout(autoTimer); clearInterval(autoCountdown);
+  document.getElementById('btn-auto-start').disabled = !writeChar;
+  document.getElementById('btn-auto-stop').disabled  = true;
+  const el = document.getElementById('auto-status');
+  el.textContent = ''; el.className = 'auto-status';
+  if (writeChar) log('Autonomous mode OFF', 'warn');
+}
+
+// ─────────────────────────────────────────────
+// Boot
+// ─────────────────────────────────────────────
+updateIntervalLabel();
+getMotionParams();
+setDroidType('bb'); // default to BB-8 since that's your unit
+log('System ready. Set droid type, then connect.', 'info');
+</script>
+</body>
+</html>
